@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/isissi/tinyapp/issues"
   },
-  "homepage": "https://github.com/isissi/tinyapp#readme"
+  "homepage": "https://github.com/isissi/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }

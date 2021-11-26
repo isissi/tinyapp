@@ -67,7 +67,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 })
 
 app.post("/urls/:id", (req, res) => {
-  console.log(req);
   const shortURL = req.params.id;
   const newURL = req.body.newURL;
   urlDatabase[shortURL] = newURL;

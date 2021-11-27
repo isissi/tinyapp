@@ -91,9 +91,7 @@ app.post("/login", (req, res) => {
 })
 
 app.post("/logout", (req, res) => {
-  const templateVars = {   
-    username: false
-  };
+  res.clearCookie("username", req.body.username);
   res.redirect("/urls")
 })
 

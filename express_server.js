@@ -72,6 +72,13 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 })
 
+app.get("/register", (req, res) => {
+  const templateVars = {   
+    username: req.cookies["username"],
+  };
+  res.render("urls_register", templateVars);
+})
+
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];

@@ -92,6 +92,13 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 })
 
+app.get("/login", (req, res) => {
+  const templateVars = {   
+    user: users[req.cookies.user_id]
+  };
+  res.render("urls_login", templateVars);
+})
+
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
@@ -106,12 +113,22 @@ app.post("/urls/:id", (req, res) => {
 })
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls");
+  const loginEmail = req.body.email;
+  const loginPassword = req.body.password;
+  console.log(passwordMatch(loginEmail, loginPassword));
+
+  if (!emailExist(loginEmail)) {
+    res.status(403).send("Your email is not registered.");
+  } else if (!passwordMatch(loginEmail, loginPassword)) {
+    res.status(403).send("Your password doesn't match");
+  } else {
+    res.cookie("user_id", findId(loginEmail));
+    res.redirect("/urls");
+  }
 })
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username", req.body.username);
+  res.clearCookie("user_id", req.cookies.user_id);
   res.redirect("/urls")
 })
 
@@ -146,12 +163,32 @@ function generateRandomString() {
 }
 
 function emailExist(emailInput) {
-  for (user in users) {
+  for (const user in users) {
     if (emailInput === users[user].email) {
       return true;
     }
   }
   return false;
+}
+
+function passwordMatch(email, password) {
+  for (const user in users) {
+    if (
+      email === users[user]["email"] &&
+      password === users[user]["password"]
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function findId(email) {
+  for (const user in users) {
+    if (users[user]['email'] === email) {
+      return users[user]['id'];
+    }
+  }
 }
 
 app.listen(PORT, () => {

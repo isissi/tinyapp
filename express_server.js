@@ -67,7 +67,6 @@ app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = longURL;
-  console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
  
@@ -115,7 +114,6 @@ app.post("/urls/:id", (req, res) => {
 app.post("/login", (req, res) => {
   const loginEmail = req.body.email;
   const loginPassword = req.body.password;
-  console.log(passwordMatch(loginEmail, loginPassword));
 
   if (!emailExist(loginEmail)) {
     res.status(403).send("Your email is not registered.");

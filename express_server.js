@@ -52,7 +52,7 @@ app.get("/fetch", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const templateVars = {   
-    urls: urlDatabase,
+    urls: urlsForUser(req.cookies.user_id),
     user: users[req.cookies.user_id]
   };
   res.render("urls_index", templateVars);
@@ -65,17 +65,14 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-app.post("/urls", (req, res) => {
-  const longURL = req.body.longURL;
-  const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL;
-  res.redirect(`/urls/${shortURL}`);
-});
- 
+
 app.get("/urls/:shortURL", (req, res) => {
+  console.log(req.params.shortURL);
+
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL]['longURL'],
+    userId: urlDatabase[req.params.shortURL]['userId'],
     user: users[req.cookies.user_id]
   };
   res.render("urls_show", templateVars);
@@ -100,6 +97,14 @@ app.get("/login", (req, res) => {
   res.render("urls_login", templateVars);
 })
 
+app.post("/urls", (req, res) => {
+  const longURL = req.body.longURL;
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = {longURL: longURL, userId: req.cookies.user_id};
+
+  res.redirect(`/urls/${shortURL}`);
+});
+ 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
@@ -107,10 +112,18 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 })
 
 app.post("/urls/:id", (req, res) => {
+  const userId = req.cookies.user_id;
+  const urls = urlsForUser(userId);
   const shortURL = req.params.id;
-  const newURL = req.body.newURL;
-  urlDatabase[shortURL] = {longURL: newURL, userID: ""};
-  res.redirect("/urls")
+  if (!userId) {
+    res.send("Please register or login.")
+  } else if (!Object.keys(urls).includes(shortURL)) {
+    res.send("Sorry, you dont't have access to this url.");
+  } else {
+    const newURL = req.body.newURL;
+    urlDatabase[shortURL] = {longURL: newURL, userID: req.cookies.user_id};
+    res.redirect("/urls");
+  }
 })
 
 app.post("/login", (req, res) => {
@@ -189,6 +202,16 @@ function findId(email) {
       return users[user]['id'];
     }
   }
+}
+
+function urlsForUser(id) {
+  let result = {};
+  for(let url in urlDatabase) {
+    if (id === urlDatabase[id]) {
+      result[url] = urlDatabase[url]["longURL"];
+    }
+  }
+  return result;
 }
 
 app.listen(PORT, () => {

@@ -8,13 +8,22 @@
 
 <body>
   <%- include('partials/_header') %>
+  <% if (!user) { %>
+    <div style="padding: 3em; text-align: center">
+      <h5>Please <a href="/register">register</a> or <a href="/login">login</a> </h5>
+    </div>
+  <% } else if (user.id !== userId) { %>
+    <div style="padding: 3em; text-align: center">
+      <h5>This url is not in your list</h5>
+    </div>
+    <% } else {%>
+
   <div class="card text-center">
-      <div class="card-header"></div>
-      <div class="card-body">
+      <div class="card-body" style="padding: 2em">
         <h5 class="card-title">TinyURL for: <%= longURL %></h5>
         <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
       </div>
-      <div class="card-footer text-muted">
+      <div class="card-footer text-muted" style="padding: 2em">
         <h5 class="card-title">Edit</h5>
       
         <form action="/urls/<%= shortURL %>" method="POST">
@@ -24,6 +33,7 @@
         </form>
     </div>
   </div>
+  <% }%>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>

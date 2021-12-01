@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const { generateRandomString, emailExist, findId, passwordMatch, urlsForUser } = require("./helpers");
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -52,10 +53,9 @@ app.get("/fetch", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const templateVars = {   
-    urls: urlsForUser(req.cookies.user_id),
+    urls: urlsForUser(req.cookies.user_id, urlDatabase),
     user: users[req.cookies.user_id]
   };
-  console.log(templateVars.urls);
   res.render("urls_index", templateVars);
 });
 
@@ -100,7 +100,6 @@ app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = {longURL: longURL, userID: req.cookies.user_id};
-  console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
  
@@ -114,27 +113,42 @@ app.post("/urls/:id", (req, res) => {
   const userId = req.cookies.user_id;
   const shortURL = req.params.id;
   if (!userId) {
-    res.send("Please register or login.")
+    const templateVars = {
+      status: "401url",
+      user: users[req.cookies.user_id]
+    };
+    return res.status(401).render("urls_error", templateVars);
   } else if (urlDatabase[shortURL].userID!==userId) {
-    res.send("Sorry, you dont't have access to this url.");
-  } else {
-    const newURL = req.body.newURL;
-    urlDatabase[shortURL] = {longURL: newURL, userID: req.cookies.user_id};
-    console.log(urlDatabase);
-    res.redirect("/urls");
-  }
+    const templateVars = {
+      status: "403url",
+      user: users[req.cookies.user_id]
+    };
+    return res.status(403).render("urls_error", templateVars);
+  } 
+  const newURL = req.body.newURL;
+  urlDatabase[shortURL] = {longURL: newURL, userID: req.cookies.user_id};
+  res.redirect("/urls");
+  
 })
 
 app.post("/login", (req, res) => {
   const loginEmail = req.body.email;
   const loginPassword = req.body.password;
 
-  if (!emailExist(loginEmail)) {
-    res.status(403).send("Your email is not registered.");
-  } else if (!passwordMatch(loginEmail, loginPassword)) {
-    res.status(403).send("Your password doesn't match");
+  if (!emailExist(loginEmail,users)) {
+    const templateVars = {
+      status: "403email",
+      user: users[req.cookies.user_id]
+    };
+    return res.status(403).render("urls_error", templateVars);
+  } else if (!passwordMatch(loginEmail, loginPassword, users)) {
+    const templateVars = {
+      status: "403pw",
+      user: users[req.cookies.user_id]
+    };
+    return res.status(403).render("urls_error", templateVars);
   } else {
-    res.cookie("user_id", findId(loginEmail));
+    res.cookie("user_id", findId(loginEmail, users));
     res.redirect("/urls");
   }
 })
@@ -149,9 +163,17 @@ app.post("/register", (req, res) => {
   const password = req.body.password;
 
   if (!email || !password) {
-    res.status(400).send("Please input a valid email & password. ");
-  } else if (emailExist(email)) {
-    res.status(400).send("You have already registered. Please log in. ");
+    const templateVars = {
+      status: "400invalid",
+      user: users[req.cookies.user_id]
+    };
+    return res.status(400).render("urls_error", templateVars);
+  } else if (emailExist(email, users)) {
+    const templateVars = {
+      status: "400email",
+      user: users[req.cookies.user_id]
+    };
+    return res.status(400).render("urls_error", templateVars);
   }
 
   const userId = generateRandomString();
@@ -165,57 +187,6 @@ app.post("/register", (req, res) => {
   res.redirect("/urls")
 })
 
-function generateRandomString() {
-  let result = '';
-  const characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  for (let i = 0; i < 6; i ++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-}
-
-function emailExist(emailInput) {
-  for (const user in users) {
-    if (emailInput === users[user].email) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function passwordMatch(email, password) {
-  for (const user in users) {
-    if (
-      email === users[user]["email"] &&
-      password === users[user]["password"]
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function findId(email) {
-  for (const user in users) {
-    if (users[user]['email'] === email) {
-      return users[user]['id'];
-    }
-  }
-}
-
-function urlsForUser(id) {
-  let result = {};
-  for(let url in urlDatabase) {
-    console.log(urlDatabase[url].userID);
-    console.log(id);
-    if (urlDatabase[url].userID === id) {
-      result[url] = {};
-      result[url].longURL = urlDatabase[url]["longURL"];
-      result[url].userID = id;
-    }
-  }
-  return result;
-}
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });

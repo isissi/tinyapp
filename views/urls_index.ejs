@@ -14,7 +14,9 @@
 
   <main style="margin: 1em;">
     <% if (!user) { %> 
-      <h5>Please register or login first.</h5>
+      <div style="padding: 3em; text-align: center">
+        <h5>Please <a href="/register">register</a> or <a href="/login">login</a> </h5>
+      </div>
     <% } else { %>
       <h3>My URLs</h3>
       <table class="table">

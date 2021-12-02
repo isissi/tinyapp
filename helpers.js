@@ -16,18 +16,6 @@ const emailExist = (emailInput, users) => {
   return false;
 }
 
-const passwordMatch = (email, password, users) => {
-  for (const user in users) {
-    if (
-      email === users[user]["email"] &&
-      password === users[user]["password"]
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
-
 const findId = (email, users) => {
   for (const user in users) {
     if (users[user]['email'] === email) {
@@ -58,4 +46,4 @@ const getUserByEmail = (email, database) => {
 }
 
 
-module.exports = { generateRandomString, emailExist, findId, passwordMatch, urlsForUser, getUserByEmail };
+module.exports = { generateRandomString, emailExist, findId, urlsForUser, getUserByEmail };

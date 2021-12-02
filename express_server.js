@@ -3,7 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const { generateRandomString, emailExist, findId, passwordMatch, urlsForUser } = require("./helpers");
+const { generateRandomString, emailExist, findId, passwordMatch, urlsForUser, getUserByEmail } = require("./helpers");
 const bcrypt = require('bcrypt');
 var cookieSession = require('cookie-session')
 

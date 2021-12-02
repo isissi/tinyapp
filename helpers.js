@@ -38,7 +38,7 @@ const findId = (email, users) => {
 
 const urlsForUser = (id, database) => {
   let result = {};
-  for(let url in database) {
+  for (const url in database) {
     if (database[url].userID === id) {
       result[url] = {};
       result[url].longURL = database[url]["longURL"];
@@ -48,4 +48,14 @@ const urlsForUser = (id, database) => {
   return result;
 }
 
-module.exports = { generateRandomString, emailExist, findId, passwordMatch, urlsForUser };
+const getUserByEmail = (email, database) => {
+  for (const user in database) {
+    if (email === database[user].email) {
+      return user;
+    }
+  }
+  return undefined;
+}
+
+
+module.exports = { generateRandomString, emailExist, findId, passwordMatch, urlsForUser, getUserByEmail };

@@ -4,6 +4,7 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { generateRandomString, emailExist, findId, passwordMatch, urlsForUser } = require("./helpers");
+const bcrypt = require('bcrypt');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -134,6 +135,7 @@ app.post("/urls/:id", (req, res) => {
 app.post("/login", (req, res) => {
   const loginEmail = req.body.email;
   const loginPassword = req.body.password;
+  const hashedPassword = users[findId(loginEmail, users)].password;
 
   if (!emailExist(loginEmail,users)) {
     const templateVars = {
@@ -141,7 +143,7 @@ app.post("/login", (req, res) => {
       user: users[req.cookies.user_id]
     };
     return res.status(403).render("urls_error", templateVars);
-  } else if (!passwordMatch(loginEmail, loginPassword, users)) {
+  } else if (!bcrypt.compareSync(loginPassword, hashedPassword)) {
     const templateVars = {
       status: "403pw",
       user: users[req.cookies.user_id]
@@ -161,6 +163,7 @@ app.post("/logout", (req, res) => {
 app.post("/register", (req, res) => {
   const email = req.body.email; 
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
   if (!email || !password) {
     const templateVars = {
@@ -180,7 +183,7 @@ app.post("/register", (req, res) => {
   users[userId] = {
     'id': userId,
     'email': email,
-    'password': password
+    'password': hashedPassword
   }
   
   res.cookie("user_id", userId);
